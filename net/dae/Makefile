@@ -45,21 +45,8 @@ define Package/dae
   TITLE:=A lightweight and high-performance transparent proxy solution
   # You need enable KERNEL_DEBUG_INFO_BTF and KERNEL_BPF_EVENTS
   DEPENDS:=$(GO_ARCH_DEPENDS) $(BPF_DEPENDS)  \
-    +ca-bundle +kmod-sched-core +kmod-sched-bpf +kmod-veth
-endef
-
-define Package/dae-geoip
-  $(call Package/dae/Default)
-  TITLE:=geoip for dae
-  DEPENDS:=+dae +v2ray-geoip
-  PKGARCH:=all
-endef
-
-define Package/dae-geosite
-  $(call Package/dae/Default)
-  TITLE:=geosite for dae
-  DEPENDS:=+dae +v2ray-geosite
-  PKGARCH:=all
+    +ca-bundle +kmod-sched-core +kmod-sched-bpf +kmod-veth \
+    +dae-geoip +dae-geosite
 endef
 
 define Package/dae/description
@@ -115,17 +102,5 @@ define Package/dae/install
 	$(INSTALL_BIN) $(CURDIR)/files/dae.init $(1)/etc/init.d/dae
 endef
 
-define Package/dae-geoip/install
-	$(INSTALL_DIR) $(1)/usr/share/dae
-	$(LN) ../v2ray/geoip.dat $(1)/usr/share/dae/geoip.dat
-endef
-
-define Package/dae-geosite/install
-	$(INSTALL_DIR) $(1)/usr/share/dae
-	$(LN) ../v2ray/geosite.dat $(1)/usr/share/dae/geosite.dat
-endef
-
 $(eval $(call GoBinPackage,dae))
 $(eval $(call BuildPackage,dae))
-$(eval $(call BuildPackage,dae-geoip))
-$(eval $(call BuildPackage,dae-geosite))
