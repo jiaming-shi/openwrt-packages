@@ -28,3 +28,32 @@ Self maintained packages for OpenWrt.
     opkg update
     opkg install dae
     ```
+
+## [Including the feed into OpenWrt build system](https://openwrt.org/docs/guide-developer/helloworld/chapter4)
+
+1. Add the feed to feeds.conf.default
+
+    Edit the feeds.conf.default file to download the needed package definitions.
+
+    ```shell
+    cd openwrt
+    echo "src-git custom https://github.com/jiaming-shi/openwrt-packages.git;openwrt-24.10" >> feeds.conf.defaults
+    ```
+
+2. Updating and installing feeds
+
+    ```shell
+    ./scripts/feeds update custom
+    ./scripts/feeds install -a -p custom
+    ```
+
+3. Compile packages
+
+    ```shell
+    # Build single package
+    make -j$(nproc) package/dae/compile
+    # Build all packages in this feed
+    make -j$(nproc) package/compile
+    
+    make -j$(nproc) package/index CONFIG_SIGNED_PACKAGES=
+    ```
