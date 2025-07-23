@@ -1,0 +1,48 @@
+From d2e37bed3d4046f3dee878487f27fd0c4109f83f Mon Sep 17 00:00:00 2001
+From: Jiaming Shi <jiaming.shih@gmail.com>
+Date: Wed, 23 Jul 2025 03:46:29 +0000
+Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
+ auto_config_kernel_parameter is off
+
+---
+ control/control_plane_core.go | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/control/control_plane_core.go b/control/control_plane_core.go
+index 9db3b9b..8f81824 100644
+--- a/control/control_plane_core.go
++++ b/control/control_plane_core.go
+@@ -208,7 +208,7 @@ func (c *controlPlaneCore) bindLan(ifname string, autoConfigKernelParameter bool
+ 			SetSendRedirects(link.Attrs().Name, "0")
+ 			SetForwarding(link.Attrs().Name, "1")
+ 		}
+-		if err := c._bindLan(link.Attrs().Name); err != nil {
++		if err := c._bindLan(link.Attrs().Name, autoConfigKernelParameter); err != nil {
+ 			c.log.Errorf("bindLan: %v", err)
+ 		}
+ 	}
+@@ -232,7 +232,7 @@ func (c *controlPlaneCore) bindLan(ifname string, autoConfigKernelParameter bool
+ 	c.ifmgr.RegisterWithPattern(ifname, initlinkCallback, newlinkCallback, dellinkCallback)
+ }
+ 
+-func (c *controlPlaneCore) _bindLan(ifname string) error {
++func (c *controlPlaneCore) _bindLan(ifname string, autoConfigKernelParameter bool) error {
+ 	c.mu.Lock()
+ 	defer c.mu.Unlock()
+ 	select {
+@@ -250,7 +250,11 @@ func (c *controlPlaneCore) _bindLan(ifname string) error {
+ 		return err
+ 	}
+ 	if err = CheckSendRedirects(ifname); err != nil {
+-		return err
++		if autoConfigKernelParameter {
++			return err
++		} else {
++			c.log.Warnf("CheckSendRedirects: %v", err)
++		}
+ 	}
+ 	_ = c.addQdisc(ifname)
+ 	_ = c.mapLinkType(ifname)
+-- 
+2.39.5
+
