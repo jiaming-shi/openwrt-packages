@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pwru
 PKG_VERSION:=1.0.9
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).zip
 PKG_SOURCE_URL:=https://github.com/cilium/pwru/archive/refs/tags/v$(PKG_VERSION).zip?
@@ -62,7 +62,8 @@ define Build/Prepare
 			--disable-dbus \
 			--without-libnl \
 			--host=$(GNU_TARGET_NAME) && \
-		make ; \
+		make \
+		CFLAGS=" -g -O2 " ; \
 	)
 endef
 
