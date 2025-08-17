@@ -1,0 +1,24 @@
+From edeef71ae565e4950cbe0e95956c55ce39d53ad9 Mon Sep 17 00:00:00 2001
+From: Jiaming Shi <jiaming.shih@gmail.com>
+Date: Sun, 17 Aug 2025 14:32:22 +0000
+Subject: [PATCH 2/2] go: Revert to 1.23.1
+
+---
+ go.mod | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/go.mod b/go.mod
+index 0005481..3d2487e 100644
+--- a/go.mod
++++ b/go.mod
+@@ -1,6 +1,6 @@
+ module github.com/cilium/pwru
+ 
+-go 1.24.1
++go 1.23.1
+ 
+ require (
+ 	github.com/Asphaltt/mybtf v0.0.0-20250708022622-be6f548674b2
+-- 
+2.39.5
+

@@ -5,12 +5,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pwru
-PKG_VERSION:=1.0.9
-PKG_RELEASE:=2
+PKG_VERSION:=1.0.10
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).zip
 PKG_SOURCE_URL:=https://github.com/cilium/pwru/archive/refs/tags/v$(PKG_VERSION).zip?
-PKG_HASH:=41e656fcf8a7860207df49edd768886a32761f936aa8bfad79503f4f62762b04
+PKG_HASH:=38160b9d7d326663ad6012b297a77656f86ca181db27abd38d50f9fe4d3736ab
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILE:=LICENSE
@@ -21,6 +21,7 @@ PKG_BUILD_PARALLEL:=1
 PKG_BUILD_FLAGS:=no-mips16
 
 GO_PKG:=github.com/cilium/pwru
+GO_PKG_EXCLUDES:=test-app
 GO_PKG_LDFLAGS_X:= \
 	$(GO_PKG)/internal/pwru.Version=$(PKG_VERSION)
 
@@ -54,6 +55,7 @@ define Build/Prepare
 	( \
 		cd $(PKG_BUILD_DIR)/libpcap && \
 		./configure \
+			--disable-protochain \
 			--disable-rdma \
 			--disable-shared \
 			--disable-usb \
