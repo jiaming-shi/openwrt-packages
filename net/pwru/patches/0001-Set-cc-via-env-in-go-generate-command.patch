@@ -1,7 +1,7 @@
 From 0a1b4a5955e7cd5b4b0d488f4fb749d32edea9e5 Mon Sep 17 00:00:00 2001
 From: Jiaming Shi <jiaming.shih@gmail.com>
 Date: Sun, 17 Aug 2025 13:29:53 +0000
-Subject: [PATCH 1/2] Set cc via env in go:generate command
+Subject: [PATCH] Set cc via env in go:generate command
 
 ---
  build.go | 2 +-

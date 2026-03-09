@@ -5,12 +5,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pwru
-PKG_VERSION:=1.0.10
+PKG_VERSION:=1.0.11
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).zip
 PKG_SOURCE_URL:=https://github.com/cilium/pwru/archive/refs/tags/v$(PKG_VERSION).zip?
-PKG_HASH:=38160b9d7d326663ad6012b297a77656f86ca181db27abd38d50f9fe4d3736ab
+PKG_HASH:=7d95d28a48e468a5d1c9068f1b86965033a7db5ed95a5b883bffaeffd78daa90
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILE:=LICENSE
@@ -63,6 +63,7 @@ define Build/Prepare
 			--disable-bluetooth \
 			--disable-dbus \
 			--without-libnl \
+			--without-dpdk \
 			--host=$(GNU_TARGET_NAME) && \
 		make \
 		CFLAGS=" -g -O2 " ; \
