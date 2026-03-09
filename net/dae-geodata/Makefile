@@ -5,7 +5,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dae-geodata
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
@@ -41,7 +41,7 @@ endef
 define Package/dae-geoip
   $(call Package/dae-geodata/template)
   TITLE:=GeoIP List for dae
-  PROVIDES:=dae-geodata
+  PROVIDES:=@dae-geodata
   VERSION:=$(GEOIP_VER)-r$(PKG_RELEASE)
   LICENSE:=CC-BY-SA-4.0
 endef
@@ -49,7 +49,7 @@ endef
 define Package/dae-geosite
   $(call Package/dae-geodata/template)
   TITLE:=Geosite List for dae
-  PROVIDES:=dae-geodata
+  PROVIDES:=@dae-geodata
   VERSION:=$(GEOSITE_VER)-r$(PKG_RELEASE)
   LICENSE:=MIT
 endef
