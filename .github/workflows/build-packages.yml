@@ -1,0 +1,213 @@
+name: Build OpenWrt Packages
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "**/Makefile"
+      - ".github/workflows/build-packages.yml"
+
+permissions:
+  contents: write
+
+env:
+  OPENWRT_VERSION: "25.12.2"
+  GCC_VERSION: "14.3.0"
+
+jobs:
+  prepare-release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.release-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Generate release tag
+        id: release-tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          release_date="$(date +%Y%m%d)"
+          prefix="${OPENWRT_VERSION}-${release_date}"
+
+          git fetch --tags --force
+
+          latest_revision="$(
+            git tag --list "${prefix}-r*" | \
+              sed -E 's/.*-r([0-9]+)$/\1/' | \
+              sort -n | \
+              tail -n 1
+          )"
+
+          if [[ -z "${latest_revision}" ]]; then
+            next_revision=1
+          else
+            next_revision=$((latest_revision + 1))
+          fi
+
+          release_tag="${prefix}-r${next_revision}"
+
+          git tag "${release_tag}" "${GITHUB_SHA}"
+          git push origin "${release_tag}"
+
+          echo "tag=${release_tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release-tag.outputs.tag }}
+          generate_release_notes: true
+
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x86/64
+            asset_suffix: x86-64
+            pkg_arch: x86_64
+          - name: mediatek/filogic
+            asset_suffix: mediatek-filogic
+            pkg_arch: aarch64_cortex-a53
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            clang \
+            file \
+            flex \
+            bison \
+            g++ \
+            gawk \
+            gcc-multilib \
+            g++-multilib \
+            gettext \
+            git \
+            libelf-dev \
+            libncurses-dev \
+            libssl-dev \
+            python3-setuptools \
+            rsync \
+            swig \
+            unzip \
+            wget \
+            zlib1g-dev \
+            zstd
+
+      - name: Set SDK paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_filename="openwrt-sdk-${OPENWRT_VERSION}-${{ matrix.asset_suffix }}_gcc-${GCC_VERSION}_musl.Linux-x86_64.tar.zst"
+          sdk_root="${RUNNER_TEMP}/sdk-${{ matrix.asset_suffix }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sdk_dir="${sdk_root}/${sdk_filename%.tar.zst}"
+
+          echo "SDK_FILENAME=${sdk_filename}" >> "${GITHUB_ENV}"
+          echo "SDK_ROOT=${sdk_root}" >> "${GITHUB_ENV}"
+          echo "SDK_DIR=${sdk_dir}" >> "${GITHUB_ENV}"
+
+      - name: Download and extract SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${SDK_ROOT}"
+          cd "${SDK_ROOT}"
+
+          sdk_url="https://github.com/jiaming-shi/openwrt-patches/releases/download/v${OPENWRT_VERSION}/${SDK_FILENAME}"
+          curl -fL --retry 3 --retry-all-errors -O "${sdk_url}"
+          tar xf "${SDK_FILENAME}"
+
+      - name: Configure custom feed
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${SDK_DIR}"
+          printf '\nsrc-git custom https://github.com/%s.git^%s\n' "${GITHUB_REPOSITORY}" "${GITHUB_SHA}" >> feeds.conf.default
+
+      - name: Update feeds and install packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${SDK_DIR}"
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a -p custom
+
+      - name: Build packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${SDK_DIR}"
+          make defconfig
+          make -j"$(nproc)" package/compile
+          make -j"$(nproc)" package/index CONFIG_SIGNED_PACKAGES=
+
+      - name: Sign package indexes
+        shell: bash
+        env:
+          APKSIGNKEY: ${{ secrets.APKSIGNKEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${APKSIGNKEY}" ]]; then
+            echo "Missing required secret: APKSIGNKEY" >&2
+            exit 1
+          fi
+
+          cd "${SDK_DIR}"
+          install -m 600 /dev/null apk-signing-key.pem
+          printf '%s\n' "${APKSIGNKEY}" > apk-signing-key.pem
+          apk_bin="$(pwd)/staging_dir/host/bin/apk"
+          sign_key="$(pwd)/apk-signing-key.pem"
+
+          find bin/packages/ -type f -name "packages.adb" -print0 | while IFS= read -r -d '' file; do
+            if ! "${apk_bin}" adbsign --allow-untrusted --sign-key "${sign_key}" "${file}"; then
+              exit 3
+            fi
+          done
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${SDK_DIR}"
+
+          package_dir="bin/packages/${{ matrix.pkg_arch }}/custom"
+          release_dir="${RUNNER_TEMP}/release-${{ matrix.asset_suffix }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          apk_dir="${release_dir}/apks"
+          mkdir -p "${apk_dir}"
+
+          tar -C "${package_dir}" -czf "${release_dir}/openwrt-packages-${{ needs.prepare-release.outputs.release_tag }}-${{ matrix.asset_suffix }}.tar.gz" .
+
+          find "${package_dir}" -maxdepth 1 -type f -name "*.apk" -print0 | while IFS= read -r -d '' file; do
+            original_name="$(basename "${file}")"
+            cp "${file}" "${apk_dir}/${{ matrix.pkg_arch }}.${original_name}"
+          done
+
+          echo "RELEASE_DIR=${release_dir}" >> "${GITHUB_ENV}"
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.release_tag }}
+          files: |
+            ${{ env.RELEASE_DIR }}/openwrt-packages-${{ needs.prepare-release.outputs.release_tag }}-${{ matrix.asset_suffix }}.tar.gz
+            ${{ env.RELEASE_DIR }}/apks/*.apk
