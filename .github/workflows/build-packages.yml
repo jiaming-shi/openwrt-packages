@@ -60,7 +60,7 @@ jobs:
           echo "tag=${release_tag}" >> "${GITHUB_OUTPUT}"
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.release-tag.outputs.tag }}
           generate_release_notes: true
@@ -205,7 +205,7 @@ jobs:
           echo "RELEASE_DIR=${release_dir}" >> "${GITHUB_ENV}"
 
       - name: Publish release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare-release.outputs.release_tag }}
           files: |
