@@ -8,11 +8,9 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
  control/control_plane_core.go | 10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/control/control_plane_core.go b/control/control_plane_core.go
-index 9db3b9b..8f81824 100644
 --- a/control/control_plane_core.go
 +++ b/control/control_plane_core.go
-@@ -208,7 +208,7 @@ func (c *controlPlaneCore) bindLan(ifname string, autoConfigKernelParameter bool
+@@ -208,7 +208,7 @@ func (c *controlPlaneCore) bindLan(ifnam
  			SetSendRedirects(link.Attrs().Name, "0")
  			SetForwarding(link.Attrs().Name, "1")
  		}
@@ -21,7 +19,7 @@ index 9db3b9b..8f81824 100644
  			c.log.Errorf("bindLan: %v", err)
  		}
  	}
-@@ -232,7 +232,7 @@ func (c *controlPlaneCore) bindLan(ifname string, autoConfigKernelParameter bool
+@@ -232,7 +232,7 @@ func (c *controlPlaneCore) bindLan(ifnam
  	c.ifmgr.RegisterWithPattern(ifname, initlinkCallback, newlinkCallback, dellinkCallback)
  }
  
@@ -30,7 +28,7 @@ index 9db3b9b..8f81824 100644
  	c.mu.Lock()
  	defer c.mu.Unlock()
  	select {
-@@ -250,7 +250,11 @@ func (c *controlPlaneCore) _bindLan(ifname string) error {
+@@ -250,7 +250,11 @@ func (c *controlPlaneCore) _bindLan(ifna
  		return err
  	}
  	if err = CheckSendRedirects(ifname); err != nil {
@@ -42,7 +40,4 @@ index 9db3b9b..8f81824 100644
 +		}
  	}
  	_ = c.addQdisc(ifname)
- 	_ = c.mapLinkType(ifname)
--- 
-2.39.5
-
+ 	linkHdrLen, err := c.linkHdrLen(ifname)
