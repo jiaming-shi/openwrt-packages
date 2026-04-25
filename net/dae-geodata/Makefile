@@ -12,7 +12,7 @@ PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
 
 include $(INCLUDE_DIR)/package.mk
 
-GEOIP_VER:=202604050243
+GEOIP_VER:=202604200545
 GEOIP_FILE:=geoip.dat.$(GEOIP_VER)
 define Download/geoip
   URL:=https://github.com/v2fly/geoip/releases/download/$(GEOIP_VER)/
@@ -21,13 +21,13 @@ define Download/geoip
   HASH:=16dbd19ff8dddb69960f313a3b0c0623cae82dc9725687110c28740226d3b285
 endef
 
-GEOSITE_VER:=20260411144700
+GEOSITE_VER:=20260424125239
 GEOSITE_FILE:=dlc.dat.$(GEOSITE_VER)
 define Download/geosite
   URL:=https://github.com/v2fly/domain-list-community/releases/download/$(GEOSITE_VER)/
   URL_FILE:=dlc.dat
   FILE:=$(GEOSITE_FILE)
-  HASH:=96b2a2d38a6546cc65b1e499a4b108a709a6e809c610524e0ea4f0a6048ea1c5
+  HASH:=813c716dc7fd1924fa5dc52751db4916a05ce26757da860d40c026f7cadf4efd
 endef
 
 define Package/dae-geodata/template
