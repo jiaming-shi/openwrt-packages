@@ -1,0 +1,22 @@
+{
+    "bounding": [
+        "CAP_BPF",
+        "CAP_PERFMON",
+        "CAP_SYS_ADMIN",
+        "CAP_SYS_RESOURCE"
+    ],
+    "effective": [
+        "CAP_BPF",
+        "CAP_PERFMON",
+        "CAP_SYS_ADMIN",
+        "CAP_SYS_RESOURCE"
+    ],
+    "ambient": [],
+    "permitted": [
+        "CAP_BPF",
+        "CAP_PERFMON",
+        "CAP_SYS_ADMIN",
+        "CAP_SYS_RESOURCE"
+    ],
+    "inheritable": []
+}

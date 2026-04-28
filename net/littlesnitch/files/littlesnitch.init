@@ -1,0 +1,41 @@
+#!/bin/sh /etc/rc.common
+# Little Snitch for Linux — procd service
+#
+# Starts before networking (START=15 < network's START=20) so eBPF hooks
+# are in place before any process opens a connection.  This matches the
+# upstream systemd Before=network-pre.target / OpenRC X-Start-Before=networking.
+
+USE_PROCD=1
+START=15
+STOP=95
+
+PROG=/usr/sbin/littlesnitch
+CONF_DST=/var/lib/littlesnitch/override/config
+
+link_config() {
+	mkdir -p "$CONF_DST"
+	for f in /etc/littlesnitch/*.toml; do
+		[ -e "$f" ] || continue
+		ln -sfn "$f" "$CONF_DST/$(basename "$f")"
+	done
+}
+
+start_service() {
+	# BTF is the only runtime dep not guaranteed by the stock image;
+	# custom builds may disable CONFIG_DEBUG_INFO_BTF.
+	[ -r /sys/kernel/btf/vmlinux ] || {
+		logger -t littlesnitch -p daemon.err \
+			"missing /sys/kernel/btf/vmlinux — enable CONFIG_DEBUG_INFO_BTF"
+		return 1
+	}
+
+	link_config
+
+	procd_open_instance
+	procd_set_param command "$PROG" --daemon --use-cap-sys-admin
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_set_param respawn 3600 5 5
+	procd_set_param capabilities /etc/capabilities/littlesnitch.json
+	procd_close_instance
+}
