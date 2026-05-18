@@ -30,7 +30,7 @@ else ifeq ($(ARCH),riscv64)
 endif
 
 PKG_SOURCE:=littlesnitch-$(PKG_VERSION)-$(UPSTREAM_ARCH)-linux-musl.tar.gz
-PKG_SOURCE_URL:=https://obdev.at/downloads/littlesnitch-linux/
+PKG_SOURCE_URL:=https://obdev.at/downloads/littlesnitch-linux/legacy/
 
 include $(INCLUDE_DIR)/package.mk
 
