@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=littlesnitch
-PKG_VERSION:=1.0.5
+PKG_VERSION:=1.0.9
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=Jiaming Shi <jiaming.shih@gmail.com>
@@ -17,20 +17,20 @@ PKG_LICENSE_FILES:=
 
 ifeq ($(ARCH),x86_64)
   UPSTREAM_ARCH:=amd64
-  PKG_HASH:=6693207c3774c49c610fb65c31eda8d1b87a6e05071e8711c33132baf0e69655
+  PKG_HASH:=890e780f4d1cf6016ca9195fcf5535c8df0acd2bdb538721b0831a0c43016afb
 else ifeq ($(ARCH),aarch64)
   UPSTREAM_ARCH:=arm64
-  PKG_HASH:=4cb41e9d2ed093efa6edf35e5cc30a4d4b0a5df03c3edfd92b4d47bab82fc21a
+  PKG_HASH:=5ba0584bf8b5e55b97034f4ddbee28623a49aa9e33e2615522ca27f085826c5e
 else ifeq ($(ARCH),powerpc64)
   UPSTREAM_ARCH:=ppc64le
-  PKG_HASH:=8afc0731daf63bab724fc4624c6eebdfba362610697d1d0a8c34c234fd651746
+  PKG_HASH:=c612f1d3c54262677e23f6af86157b37e8a515731664cdaa6ba65537915f2bd8
 else ifeq ($(ARCH),riscv64)
   UPSTREAM_ARCH:=riscv64
-  PKG_HASH:=3c511d6dd50e29428a1b347bcb9e7ed6ef1186309da56bceb425dd25becb38d3
+  PKG_HASH:=0e9181c68af186e84ea0cacb2a0b9404372e1f8829a7dc8ea6d606b2af031228
 endif
 
 PKG_SOURCE:=littlesnitch-$(PKG_VERSION)-$(UPSTREAM_ARCH)-linux-musl.tar.gz
-PKG_SOURCE_URL:=https://obdev.at/downloads/littlesnitch-linux/legacy/
+PKG_SOURCE_URL:=https://obdev.at/downloads/littlesnitch-linux/
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -60,6 +60,7 @@ endef
 
 define Package/littlesnitch/conffiles
 /etc/littlesnitch/main.toml
+/etc/littlesnitch/networks.toml
 /etc/littlesnitch/web_ui.toml
 /etc/littlesnitch/executables.toml
 endef
@@ -70,18 +71,19 @@ Build/Compile:=
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	$(TAR) --no-same-owner -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
+	$(TAR) --no-same-owner -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR) --strip-components=2
 endef
 
 define Package/littlesnitch/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/littlesnitch $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/usr/bin/littlesnitch $(1)/usr/sbin/
 
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/littlesnitch.init $(1)/etc/init.d/littlesnitch
 
 	$(INSTALL_DIR) $(1)/etc/littlesnitch
 	$(INSTALL_CONF) ./files/main.toml        $(1)/etc/littlesnitch/
+	$(INSTALL_CONF) ./files/networks.toml    $(1)/etc/littlesnitch/
 	$(INSTALL_CONF) ./files/web_ui.toml      $(1)/etc/littlesnitch/
 	$(INSTALL_CONF) ./files/executables.toml $(1)/etc/littlesnitch/
 

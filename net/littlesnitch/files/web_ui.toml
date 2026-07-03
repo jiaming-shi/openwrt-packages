@@ -5,7 +5,18 @@
 
 bind_address = "127.0.0.1"
 bind_port = 3031
-use_https = false
+
+# If `ui_base_urls` is set, Little Snitch will check whether the HTML page
+# was obtained from a server in the given list by checking the `Origin:`
+# header of the http(s) request. This is to prevent Cross Site Request
+# Forgery. If you bind to a publicly available interface, list all URLs
+# where the service can be reached. If your server is not listed, a
+# message "rejected WebSocket upgrade from disallowed origin" is logged
+# and the web UI shows "Daemon offline — reconnecting…".
+# If you omit the setting, no check is done and all origins are allowed.
+ui_base_urls = ["http://127.0.0.1:3031", "http://localhost:3031"]
+
+use_https = false   # Also configure key and cert if set to true!
 
 # Hide the web service from the connections list and traffic history.
 # Since each user interface update requires network communication via the
@@ -15,7 +26,8 @@ use_https = false
 # with a rule when hiding from stats!
 hide_self_from_stats = true
 
-# Used only when use_https = true. If not specified, a self-signed certificate is used.
+# Used only when use_https = true. If not specified, a temporary self-signed
+# certificate is used.
 # ssl_certificate_path = "/etc/littlesnitch/cert.pem"
 # ssl_key_path = "/etc/littlesnitch/key.pem"
 
@@ -31,16 +43,29 @@ hide_self_from_stats = true
 #
 # Examples:
 
+# ----------------------------------------------------------------------------
+
 # [authentication]
 # type = "system_account"
+# restrict_to_group = "staff"   # optional, all groups allowed if not defined
+# pam_service = "login"         # default is "login", any of /etc/pam.d/*
 # Authentication using your system account (Linux username and password) requires
 # libpam (Pluggable Authentication Module) support. Standard pre-built packages
-# include libpam. Only the self-contained static binary release omits it.
+# include libpam, musl based self-contained static binaryies don't.
+# About `pam_service`: A PAM service configuration in /etc/pam.d defines how
+# users are authenticated. By default, we use the same configuration as
+# account login, but you can change to any other configuration and you can
+# even write your own. Note, though, that many Linux distros silently fall
+# back to "other" if the configuration does not exist.
+
+# ----------------------------------------------------------------------------
 
 # [authentication]
 # type = "shared_credentials"
 # user = "admin"
 # password = "<argon2 hash -- run `daemon --hash-password` to generate>"
+
+# ----------------------------------------------------------------------------
 
 # [authentication]
 # type = "external_authenticator"
@@ -49,3 +74,8 @@ hide_self_from_stats = true
 # The external authenticator script receives two lines on stdin: First username,
 # then clear text password. If it terminates with exit code 0, the password is
 # assumed to be correct. Otherwise login fails.
+# The path to the external authenticator must be fully root-owned and must not
+# contain symlinks or group- or world-writable components.
+# The authenticator is executed as root, but without capabilities. It may
+# therefore use PAM and read /etc/shadow, but it cannot use other root powers
+# such as binding to low port numbers, doing chown on files etc.
