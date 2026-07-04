@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 env:
-  OPENWRT_VERSION: "25.12.4"
+  OPENWRT_VERSION: "25.12.5"
   GCC_VERSION: "14.3.0"
 
 jobs:

@@ -7,7 +7,7 @@ Self maintained packages for OpenWrt.
 
     Edit (or create) the file /etc/apk/repositories.d/customfeeds.list and add:
     ```
-    https://downloads.jiaming.sh/releases/25.12.4/packages/x86_64/custom/packages.adb
+    https://downloads.jiaming.sh/releases/25.12.5/packages/x86_64/custom/packages.adb
     ```
 
 2. Import the feed signing key
