@@ -4,6 +4,9 @@
 # Override in /var/lib/littlesnitch/override/config/web_ui.toml
 
 bind_address = "127.0.0.1"
+# Ports below 1024 work as well: the daemon binds the socket during startup
+# while it still holds CAP_NET_BIND_SERVICE (granted by the shipped systemd
+# service file) and drops the capability right afterwards.
 bind_port = 3031
 
 # If `ui_base_urls` is set, Little Snitch will check whether the HTML page
@@ -30,6 +33,19 @@ hide_self_from_stats = true
 # certificate is used.
 # ssl_certificate_path = "/etc/littlesnitch/cert.pem"
 # ssl_key_path = "/etc/littlesnitch/key.pem"
+
+# Authentication runs in a separate helper process which keeps UID 0 (root) so
+# that PAM and external authenticators can read /etc/shadow. By default this
+# helper prevents that programs it executes regain root capabilities: it sets
+# no_new_privs and clears its capability bounding set. Set this option to true
+# if your PAM stack or external authenticator needs full root privileges, for
+# example to switch users.
+# Note: When the daemon is started by the shipped systemd service file,
+# NoNewPrivileges=yes applies to the whole service and executed programs run
+# without capabilities regardless of this setting. Override the service file
+# if you really need a fully privileged authenticator.
+# If you set this option, it must appear above the [authentication] section.
+auth_helper_full_privileges = false
 
 # Authentication options:
 #
@@ -76,6 +92,7 @@ hide_self_from_stats = true
 # assumed to be correct. Otherwise login fails.
 # The path to the external authenticator must be fully root-owned and must not
 # contain symlinks or group- or world-writable components.
-# The authenticator is executed as root, but without capabilities. It may
-# therefore use PAM and read /etc/shadow, but it cannot use other root powers
-# such as binding to low port numbers, doing chown on files etc.
+# The authenticator is executed as root, but without capabilities (see the
+# auth_helper_full_privileges option above). It may therefore use PAM and read
+# /etc/shadow, but it cannot use other root powers such as binding to low port
+# numbers, doing chown on files etc.

@@ -9,3 +9,18 @@
 # Be careful if you don't have physical access to your machine! It is very
 # easy to lock yourself out!
 deny_by_default = false
+
+# FUSE mounts can have restrictive permissions which deny even root access.
+# AppImages, in particular, are readable only by the user who opened them.
+# Little Snitch needs access to the mounts in order to expand wildcard
+# patterns for rules (AppImage rules always contain wildcards because the
+# mount path is random).
+# We handle this in two ways:
+# 1. If `chage_uid_for_fuse_mounts` is `true`, we spawn a thread, switch
+#    UID and GID to the mount's user and expand the glob pattern as user.
+# 2. If an executable path is reported from eBPF (kernel), we compare it to
+#    all glob patterns and update our match list so that rules match. this
+#    second mechanism becomes effective only a short time *after* some data
+#    has been sent using default rules. We therefore have mechanism (1) active
+#    by default.
+chage_uid_for_fuse_mounts = true

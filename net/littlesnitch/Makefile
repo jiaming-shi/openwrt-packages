@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=littlesnitch
-PKG_VERSION:=1.0.9
+PKG_VERSION:=1.1.0
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=Jiaming Shi <jiaming.shih@gmail.com>
@@ -17,16 +17,16 @@ PKG_LICENSE_FILES:=
 
 ifeq ($(ARCH),x86_64)
   UPSTREAM_ARCH:=amd64
-  PKG_HASH:=890e780f4d1cf6016ca9195fcf5535c8df0acd2bdb538721b0831a0c43016afb
+  PKG_HASH:=f1d44335fdea7abd3f0bd418197b88a65d9024ab099580e7179951148bd07ce1
 else ifeq ($(ARCH),aarch64)
   UPSTREAM_ARCH:=arm64
-  PKG_HASH:=5ba0584bf8b5e55b97034f4ddbee28623a49aa9e33e2615522ca27f085826c5e
+  PKG_HASH:=9fa387de3ad4d5510665b94ae3156f308294c673f6b1692907ac6eb6294aeea3
 else ifeq ($(ARCH),powerpc64)
   UPSTREAM_ARCH:=ppc64le
-  PKG_HASH:=c612f1d3c54262677e23f6af86157b37e8a515731664cdaa6ba65537915f2bd8
+  PKG_HASH:=6d9a47378059c793f2465c901970647a0186a57f2e4d1725c3e7cf681a4dac08
 else ifeq ($(ARCH),riscv64)
   UPSTREAM_ARCH:=riscv64
-  PKG_HASH:=0e9181c68af186e84ea0cacb2a0b9404372e1f8829a7dc8ea6d606b2af031228
+  PKG_HASH:=46ed4b6e8fc28f513348f2b04bfd4461c762830ecddf9e103e92fc9398849b86
 endif
 
 PKG_SOURCE:=littlesnitch-$(PKG_VERSION)-$(UPSTREAM_ARCH)-linux-musl.tar.gz
@@ -63,6 +63,7 @@ define Package/littlesnitch/conffiles
 /etc/littlesnitch/networks.toml
 /etc/littlesnitch/web_ui.toml
 /etc/littlesnitch/executables.toml
+/etc/littlesnitch/software_update.toml
 endef
 
 # No source to configure or compile - upstream provides a static binary.
@@ -82,10 +83,11 @@ define Package/littlesnitch/install
 	$(INSTALL_BIN) ./files/littlesnitch.init $(1)/etc/init.d/littlesnitch
 
 	$(INSTALL_DIR) $(1)/etc/littlesnitch
-	$(INSTALL_CONF) ./files/main.toml        $(1)/etc/littlesnitch/
-	$(INSTALL_CONF) ./files/networks.toml    $(1)/etc/littlesnitch/
-	$(INSTALL_CONF) ./files/web_ui.toml      $(1)/etc/littlesnitch/
-	$(INSTALL_CONF) ./files/executables.toml $(1)/etc/littlesnitch/
+	$(INSTALL_CONF) ./files/main.toml            $(1)/etc/littlesnitch/
+	$(INSTALL_CONF) ./files/networks.toml        $(1)/etc/littlesnitch/
+	$(INSTALL_CONF) ./files/web_ui.toml          $(1)/etc/littlesnitch/
+	$(INSTALL_CONF) ./files/executables.toml     $(1)/etc/littlesnitch/
+	$(INSTALL_CONF) ./files/software_update.toml $(1)/etc/littlesnitch/
 
 	$(INSTALL_DIR) $(1)/etc/capabilities
 	$(INSTALL_DATA) ./files/capabilities.json $(1)/etc/capabilities/littlesnitch.json

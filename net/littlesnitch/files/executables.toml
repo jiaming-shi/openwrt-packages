@@ -28,6 +28,7 @@ app_manager_globs = [
     "/usr/bin/xinit",
     "/usr/lib/*-linux-gnu/glib-*/gio-launch-desktop",
     "/usr/lib/systemd/systemd",
+    "/usr/libexec/flatpak-session-helper",
     "/usr/libexec/gnome-session-binary",
 ]
 
