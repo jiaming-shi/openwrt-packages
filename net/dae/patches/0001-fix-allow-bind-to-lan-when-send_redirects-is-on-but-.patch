@@ -10,7 +10,7 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
 
 --- a/control/control_plane_core.go
 +++ b/control/control_plane_core.go
-@@ -208,7 +208,7 @@ func (c *controlPlaneCore) bindLan(ifnam
+@@ -404,7 +404,7 @@ func (c *controlPlaneCore) bindLan(ifnam
  			SetSendRedirects(link.Attrs().Name, "0")
  			SetForwarding(link.Attrs().Name, "1")
  		}
@@ -19,7 +19,7 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
  			c.log.Errorf("bindLan: %v", err)
  		}
  	}
-@@ -232,7 +232,7 @@ func (c *controlPlaneCore) bindLan(ifnam
+@@ -427,7 +427,7 @@ func (c *controlPlaneCore) bindLan(ifnam
  	c.ifmgr.RegisterWithPattern(ifname, initlinkCallback, newlinkCallback, dellinkCallback)
  }
  
@@ -27,8 +27,8 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
 +func (c *controlPlaneCore) _bindLan(ifname string, autoConfigKernelParameter bool) error {
  	c.mu.Lock()
  	defer c.mu.Unlock()
- 	select {
-@@ -250,7 +250,11 @@ func (c *controlPlaneCore) _bindLan(ifna
+ 	bpf := c.bpf.Load()
+@@ -449,7 +449,11 @@ func (c *controlPlaneCore) _bindLan(ifna
  		return err
  	}
  	if err = CheckSendRedirects(ifname); err != nil {
@@ -39,5 +39,5 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
 +			c.log.Warnf("CheckSendRedirects: %v", err)
 +		}
  	}
- 	_ = c.addQdisc(ifname)
- 	linkHdrLen, err := c.linkHdrLen(ifname)
+ 	// Best effort to add qdisc; it may already exist.
+ 	_ = c.addQdisc(link)
