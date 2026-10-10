@@ -5,22 +5,22 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
  auto_config_kernel_parameter is off
 
 ---
- control/control_plane_core.go | 10 +++++++---
+ control/control_plane_core_bind.go | 10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/control/control_plane_core.go
-+++ b/control/control_plane_core.go
-@@ -404,7 +404,7 @@ func (c *controlPlaneCore) bindLan(ifnam
+--- a/control/control_plane_core_bind.go
++++ b/control/control_plane_core_bind.go
+@@ -182,7 +182,7 @@
  			SetSendRedirects(link.Attrs().Name, "0")
  			SetForwarding(link.Attrs().Name, "1")
  		}
--		if err := c._bindLan(link.Attrs().Name); err != nil {
-+		if err := c._bindLan(link.Attrs().Name, autoConfigKernelParameter); err != nil {
- 			c.log.Errorf("bindLan: %v", err)
- 		}
+-		return c._bindLan(link.Attrs().Name)
++		return c._bindLan(link.Attrs().Name, autoConfigKernelParameter)
  	}
-@@ -427,7 +427,7 @@ func (c *controlPlaneCore) bindLan(ifnam
- 	c.ifmgr.RegisterWithPattern(ifname, initlinkCallback, newlinkCallback, dellinkCallback)
+ 	newlinkCallback := func(link netlink.Link) {
+ 		if link.Attrs().Name == HostVethName {
+@@ -214,7 +214,7 @@
+ 	return c.attachMatchingInterfaces(ifname, attach)
  }
  
 -func (c *controlPlaneCore) _bindLan(ifname string) error {
@@ -28,7 +28,7 @@ Subject: [PATCH] fix: allow bind to lan when send_redirects is on but
  	c.mu.Lock()
  	defer c.mu.Unlock()
  	bpf := c.bpf.Load()
-@@ -449,7 +449,11 @@ func (c *controlPlaneCore) _bindLan(ifna
+@@ -236,7 +236,11 @@
  		return err
  	}
  	if err = CheckSendRedirects(ifname); err != nil {
